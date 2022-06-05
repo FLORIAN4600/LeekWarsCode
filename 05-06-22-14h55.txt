@@ -1,0 +1,202 @@
+/*
+
+ Bienvenue sur Leek Wars !
+ 
+ Pour connaître le fonctionnement du jeu : leekwars.com/help/general
+ 
+ Pour apprendre le langage LeekScript : leekwars.com/help/tutorial et leekwars.com/encyclopedia/Tutoriel_LeekScript
+ 
+ Pour progresser en fonction de son niveau (dès le niveau 1) : leekwars.com/encyclopedia/Tutoriel_par_niveau
+ 
+ Pour se documenter sur les fonctions disponibles : leekwars.com/help/documentation
+ 
+*/
+
+var enemy = getNearestEnemy();
+var enemyCell = getCell(enemy);
+var me = getEntity();
+var canAct = true;
+var canPistolShoot = false;
+var canMGShoot = false;
+var weapon = getWeapon(me);
+var turn = getTurn();
+var buffed = 0;
+var life = getLife(me);
+var totalLife = getTotalLife(me);
+var dontMove = false;
+var runOneTime = false;
+var runTo = [0, 0];
+var dmgPerFire = [0, 0];
+var fireCost = 0;
+
+
+var myCell = getCell(me);
+var x = getCellX(enemyCell)-getCellX(myCell);
+var y = getCellY(enemyCell)-getCellY(myCell);
+
+
+
+/* enleves les // avant le code ci dessous si tu as le machine gun équipé (partie 1/2) */
+
+//if(canUseWeapon(WEAPON_MACHINE_GUN, enemy)) {
+	//canMGShoot = true;
+	//setWeapon(WEAPON_MACHINE_GUN);
+	//weapon = WEAPON_MACHINE_GUN;
+//}
+
+
+
+
+if(weapon != WEAPON_PISTOL and weapon != WEAPON_MACHINE_GUN) {
+	setWeapon(WEAPON_PISTOL);
+	weapon = WEAPON_PISTOL
+}
+
+if(weapon == WEAPON_PISTOL) {
+	dmgPerFire = [15, 20];
+	fireCost = 3;
+}else if(weapon == WEAPON_MACHINE_GUN) {
+	dmgPerFire = [30, 45];
+	fireCost = 4;
+}
+
+
+
+if(x < 0) {
+	x = -x;
+}
+
+if(y < 0) {
+	y = -y;
+}
+
+
+
+/* enleves les // avant le code ci dessous si tu as un/une chip protein (protéine) équipé(e) */
+
+//if(canUseChip(CHIP_PROTEIN, me) and x+y <= 8) {
+	//useChip(CHIP_PROTEIN, me)
+	//buffed = 1;
+//}
+
+
+
+/* enleves les // avant le code ci dessous si tu as des adversaires avec des machine guns */
+
+//if(getWeapon(enemy) == WEAPON_MACHINE_GUN) {
+	//if(x == 1 and y == 1 or x == 2 and y == 1 or x == 1 and y == 2 or x == 2 and y == 2) {
+		//dontMove = true;
+	//}
+	
+	//if(x == 0 and y == 1 or x == 1 and y == 0 or x == 2 and y == 0 or x == 0 and y == 2) {
+		//runOneTime = true;
+		//if(x == 0) {
+			//runTo = [randInt(0, 2)*2-1, y]
+		//}
+		//if(y == 0) {
+			//runTo = [x, randInt(0, 2)*2-1]
+		//}
+	//}
+//}
+
+
+
+
+/* enleves les // avant le code ci dessous si tu as un/une chip bandage (bandage) équipé(e) */
+
+//if(life <= totalLife/3) {
+	//var currTp = getTP(me);
+	//var strenght = getStrength();
+	//var maxFires = round(currTp/fireCost);
+	//var enemyResistance = getResistance(enemy);
+	//var enemyAbsoluteShield = getAbsoluteShield(enemy);
+	//var enemyRelativeShield = getRelativeShield(enemy);
+	//var enemyDmgMultiplier = (1-enemyRelativeShield/100);
+	//var dmgPerShot = (dmgPerFire[0]+(dmgPerFire[1]-dmgPerFire[0])/5);
+	
+	//if(maxFires > currTp/fireCost) {
+		//maxFires -= 1;
+	//}
+	
+	//if(getLife(enemy) >= ((dmgPerShot*enemyDmgMultiplier-enemyAbsoluteShield)*(1+strenght/100)*maxFires)) {
+		//useChip(CHIP_BANDAGE, me);
+		//life += 13;
+	//}
+//}
+
+
+
+
+while(canAct) {
+	var tp = getTP(me);
+	var mp = getMP(me);
+	var opsLeft = OPERATIONS_LIMIT-getOperations()-1;
+	
+	if(tp <= 0 and mp <= 0) {
+		canAct = false;
+	}
+	
+	if(opsLeft >= 545) {
+		if(canPistolShoot and tp > 2 and opsLeft > 3000) {
+			useWeapon(enemy);
+		}else if(canMGShoot and tp > 3 and opsLeft > 3000) {
+			useWeapon(enemy);
+		}else {
+			if(false) {
+				
+				
+			/* enleves les // avant le code ci dessous si tu as le machine gun équipé (partie 2/2) */
+				
+			//}else if(canUseWeapon(WEAPON_MACHINE_GUN, enemy) and tp > 3 and opsLeft-45 > 3000) {
+				//if(weapon != WEAPON_MACHINE_GUN) {
+					//setWeapon(WEAPON_MACHINE_GUN);
+				//}
+				//canMGShoot = true;
+				//useWeapon(enemy);
+				
+				
+				
+			}else if(canUseWeapon(WEAPON_PISTOL, enemy) and tp > 2 and opsLeft-45 > 3000) {
+				if(weapon != WEAPON_PISTOL) {
+					setWeapon(WEAPON_PISTOL);
+				}
+				canPistolShoot = true;
+				useWeapon(enemy);
+			}else {
+				opsLeft -= 45;
+				if(runOneTime) {
+					if(opsLeft >= 515 and mp > 0) {
+						canAct = !(moveTowardCell(getCellFromXY(getCellX(enemyCell)+runTo[0], getCellY(enemyCell)+runTo[1])) < 1);
+						runOneTime = false;
+						dontMove = true;
+					}else {
+						canAct = false;
+					}
+				}else {
+					(mp > 0 and !dontMove) ? canAct = !(moveToward(enemy, 1) < 1) : canAct = false;
+				}
+			}
+		}
+	}else {
+		canAct = false;
+	}
+}
+
+
+
+/*
+ 
+ *	Ne supprimez en aucun cas la partie du code comprise entre cette ligne et la fin du code
+ 
+ 
+ *	Copyright
+ 
+ 
+ *	[Made by FLORIAN4600#0293 || Florian Maitre-Maudhuit]
+ 
+ 
+ *	Ce code est sous license: GNU General Public License v3.0
+ 
+ *	La license est visionnable ici: https://github.com/FLORIAN4600/LeekWarsCode/blob/main/LICENSE
+ 
+*/
